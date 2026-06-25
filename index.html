@@ -1,0 +1,1334 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      background: #0f172a;
+      color: white;
+    }
+
+    .topbar {
+      width: 100%;
+      min-height: 105px;
+      background: linear-gradient(90deg, #020617 0%, #0f172a 45%, #111827 100%);
+      border-radius: 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 22px 32px;
+      margin-bottom: 22px;
+      border: 1px solid rgba(255,255,255,0.06);
+      box-shadow: 0 0 25px rgba(0,0,0,0.25);
+      box-sizing: border-box;
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+    }
+
+    .logo {
+      height: 48px;
+      object-fit: contain;
+    }
+
+    .topbar-title h1 {
+      font-size: 34px;
+      margin: 0 0 8px;
+    }
+
+    .topbar-title p {
+      font-size: 15px;
+      margin: 0;
+      color: #cbd5e1;
+    }
+
+    .topbar-right {
+      color: #cbd5e1;
+      font-size: 15px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .topbar-tabs {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    .topbar-tabs button {
+      color: #cbd5e1;
+      border: 1px solid rgba(203,213,225,0.25);
+      border-radius: 999px;
+      padding: 8px 13px;
+      background: rgba(15,23,42,0.9);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .topbar-tabs button.active {
+      background: #10b981;
+      border-color: #10b981;
+      color: #020617;
+    }
+
+    .dashboard-section {
+      display: none;
+    }
+
+    .dashboard-section.active {
+      display: block;
+    }
+
+    .section-heading {
+      margin: 26px 0 16px;
+    }
+
+    .section-heading h2 {
+      font-size: 28px;
+      margin: 0 0 6px;
+    }
+
+    .section-heading p {
+      color: #94a3b8;
+      margin: 0;
+      font-size: 15px;
+    }
+
+    .panel, .table-section, .filter-panel {
+      background: #111827;
+      border-radius: 18px;
+      padding: 22px;
+      margin-bottom: 25px;
+      border: 1px solid rgba(255,255,255,0.06);
+      box-sizing: border-box;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+
+    .card {
+      background: #111827;
+      border-radius: 16px;
+      padding: 20px;
+      border: 1px solid rgba(255,255,255,0.06);
+      min-height: 94px;
+      box-sizing: border-box;
+    }
+
+    .card h3 {
+      color: #94a3b8;
+      margin: 0 0 12px;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .card span {
+      font-size: 36px;
+      font-weight: bold;
+      color: #10b981;
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .device-icon {
+      width: 62px;
+      height: 62px;
+      object-fit: contain;
+      opacity: 0.92;
+    }
+
+    .technology-icon {
+      width: 62px;
+      height: 72px;
+      object-fit: contain;
+      opacity: 0.95;
+    }
+
+    .technology-icon-wide {
+      width: 96px;
+      height: 68px;
+      object-fit: contain;
+      opacity: 0.95;
+    }
+
+    .plate-badge {
+      min-width: 62px;
+      height: 38px;
+      border: 2px solid rgba(203,213,225,0.9);
+      border-radius: 8px;
+      color: #cbd5e1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      background: #020617;
+    }
+
+    h2 {
+      font-size: 28px;
+      margin: 0 0 20px;
+    }
+
+    .filter-panel label {
+      display: block;
+      font-size: 16px;
+      font-weight: 600;
+      color: #cbd5e1;
+      margin-bottom: 12px;
+    }
+
+    .filter-grid {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 15px;
+    }
+
+    .lpr-filter-grid {
+      grid-template-columns: 230px 230px 1fr;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 14px;
+      border-radius: 10px;
+      border: none;
+      outline: none;
+      background: #1e293b;
+      color: white;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+
+    .listado-filters {
+      display: grid;
+      grid-template-columns: 1fr 190px 330px;
+      gap: 14px;
+      align-items: start;
+      margin-bottom: 14px;
+    }
+
+    .lpr-listado-filters {
+      grid-template-columns: 1fr 170px 190px 330px;
+    }
+
+    .multi-filter {
+      background: #1e293b;
+      border-radius: 10px;
+      border: 1px solid #334155;
+      max-height: 45px;
+      overflow: hidden;
+      transition: max-height 0.25s ease;
+    }
+
+    .multi-filter:hover, .multi-filter:focus-within {
+      max-height: 310px;
+      overflow-y: auto;
+    }
+
+    .multi-filter-title {
+      padding: 14px;
+      color: #cbd5e1;
+      font-size: 14px;
+      font-weight: 700;
+      border-bottom: 1px solid #334155;
+    }
+
+    .check-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 14px;
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .check-item input {
+      width: auto;
+      margin: 0;
+    }
+
+    .download-btn, .clear-btn {
+      background: #10b981;
+      color: #020617;
+      border: none;
+      padding: 13px 22px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      margin: 10px 0 18px;
+    }
+
+    .clear-btn {
+      background: transparent;
+      color: #10b981;
+      border: 1px solid #10b981;
+      padding: 9px 14px;
+      margin: 0 0 12px;
+    }
+
+    .status {
+      color: #94a3b8;
+      font-size: 14px;
+      margin: 8px 0 14px;
+    }
+
+    .error {
+      color: #fca5a5;
+      background: rgba(239,68,68,0.1);
+      border: 1px solid rgba(239,68,68,0.25);
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 16px;
+      display: none;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 16px;
+      border-bottom: 1px solid #334155;
+      text-align: left;
+      font-size: 15px;
+      vertical-align: top;
+    }
+
+    th {
+      background: #1e293b;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    #map {
+      height: 420px;
+      border-radius: 14px;
+      background: #0f172a;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    @media(max-width: 950px) {
+      .grid, .filter-grid, .lpr-filter-grid, .listado-filters {
+        grid-template-columns: 1fr;
+      }
+      .topbar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 14px;
+      }
+      .topbar-left {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 14px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="topbar">
+    <div class="topbar-left">
+      <img src="https://seguritech.com/dist/img/SeguriTech.png" class="logo">
+      <div class="topbar-title">
+        <h1 id="pageTitle">Control VVU</h1>
+        <p id="pageSubtitle">Video Vigilancia Urbana</p>
+        <div class="topbar-tabs">
+          <button id="topTabVvu" class="active" type="button" onclick="showTab('vvu')">Control VVU</button>
+          <button id="topTabLpr" type="button" onclick="showTab('lpr')">Control LPR</button>
+        </div>
+      </div>
+    </div>
+    <div class="topbar-right"><span id="datetime"></span></div>
+  </div>
+
+  <div id="errorBox" class="error"></div>
+
+  <section id="vvuSection" class="dashboard-section active">
+    <div class="section-heading">
+      <h2>Control VVU (Video Vigilancia Urbana)</h2>
+      <p>Monitoreo general de dispositivos por municipio.</p>
+    </div>
+
+    <div id="mainStatus" class="status">Cargando información VVU...</div>
+    <div class="cards" id="cards"></div>
+
+    <div class="filter-panel">
+      <label>Filtrar municipio</label>
+      <div class="filter-grid">
+        <select id="municipioSelect">
+          <option value="">Todos los municipios</option>
+        </select>
+        <input type="text" id="municipioSearch" placeholder="Buscar municipio por coincidencia...">
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Totales VVU por Municipio</h2>
+      <button class="download-btn" onclick="downloadMunicipiosCSV()">Descargar totales CSV</button>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Municipio</th>
+              <th>Total</th>
+              <th>Total Fijas</th>
+              <th>PTZ</th>
+              <th>F1</th>
+              <th>F2</th>
+              <th>F3</th>
+              <th>F4</th>
+              <th>F5</th>
+            </tr>
+          </thead>
+          <tbody id="municipiosTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="panel">
+        <h2>Dispositivos VVU por Municipio</h2>
+        <canvas id="municipiosChart"></canvas>
+      </div>
+      <div class="panel">
+        <h2>Mapa de Ubicaciones VVU</h2>
+        <div id="map"></div>
+        <div id="mapStatus" class="status"></div>
+      </div>
+    </div>
+
+    <div class="table-section">
+      <h2>Listado General VVU</h2>
+
+      <div class="listado-filters">
+        <input type="text" id="searchInput" placeholder="Buscar por afiliación, IP, municipio o dispositivo...">
+        <select id="deviceFilter">
+          <option value="">Todos los dispositivos</option>
+          <option value="PTZ">PTZ</option>
+          <option value="F1">F1</option>
+          <option value="F2">F2</option>
+          <option value="F3">F3</option>
+          <option value="F4">F4</option>
+          <option value="F5">F5</option>
+        </select>
+        <div id="municipioCheckboxes" class="multi-filter">
+          <div class="multi-filter-title">Filtrar por uno o varios municipios</div>
+        </div>
+      </div>
+
+      <button class="clear-btn" onclick="clearListadoFilters()">Limpiar filtros</button>
+      <div id="listadoInfo" class="status"></div>
+
+      <button class="download-btn" onclick="downloadListadoCSV()">Descargar listado CSV</button>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Municipio</th>
+              <th>Afiliación</th>
+              <th>IP</th>
+              <th>Dispositivo</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="lprSection" class="dashboard-section">
+    <div class="section-heading">
+      <h2>Control de LPR (License Plate Recognition)</h2>
+      <p>Resumen de cámaras lectoras de placas por subcentro y número de LPR.</p>
+    </div>
+
+    <div id="lprStatus" class="status">Cargando información LPR...</div>
+    <div class="cards" id="lprCards"></div>
+
+    <div class="filter-panel">
+      <label>Filtrar tecnología y subcentro LPR</label>
+      <div class="filter-grid lpr-filter-grid">
+        <select id="lprTechnologySelect">
+          <option value="">Todas las tecnologías</option>
+        </select>
+        <select id="lprSubcentroSelect">
+          <option value="">Todos los subcentros</option>
+        </select>
+        <input type="text" id="lprSubcentroSearch" placeholder="Buscar subcentro por coincidencia...">
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Totales LPR por Tecnología y Subcentro</h2>
+      <button class="download-btn" onclick="downloadLprSubcentrosCSV()">Descargar totales LPR CSV</button>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr id="lprSubcentrosHead"></tr>
+          </thead>
+          <tbody id="lprSubcentrosTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Cámaras LPR por Tecnología y Subcentro</h2>
+      <canvas id="lprChart"></canvas>
+    </div>
+
+    <div class="table-section">
+      <h2>Listado General LPR</h2>
+
+      <div class="listado-filters lpr-listado-filters">
+        <input type="text" id="lprSearchInput" placeholder="Buscar por afiliación, IP, tecnología, subcentro, nombre o LPR...">
+        <select id="lprTechnologyListFilter">
+          <option value="">Todas las tecnologías</option>
+        </select>
+        <select id="lprTypeFilter">
+          <option value="">Todos los LPR</option>
+        </select>
+        <div id="lprSubcentroCheckboxes" class="multi-filter">
+          <div class="multi-filter-title">Filtrar por uno o varios subcentros</div>
+        </div>
+      </div>
+
+      <button class="clear-btn" onclick="clearLprListadoFilters()">Limpiar filtros</button>
+      <div id="lprListadoInfo" class="status"></div>
+
+      <button class="download-btn" onclick="downloadLprListadoCSV()">Descargar listado LPR CSV</button>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Tecnología</th>
+              <th>Subcentro</th>
+              <th>N° de LPR</th>
+              <th>Afiliación Cliente</th>
+              <th>Afiliación SGT</th>
+              <th>IP</th>
+              <th>Nombre</th>
+              <th>Server ID</th>
+              <th>Device ID</th>
+            </tr>
+          </thead>
+          <tbody id="lprTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+<script>
+let dashboardData = null;
+let lprData = null;
+let allData = [];
+let allLprData = [];
+let currentListado = [];
+let currentMunicipios = [];
+let currentLprListado = [];
+let currentLprSubcentros = [];
+let municipioChart = null;
+let lprChart = null;
+let map = null;
+let markerLayer = null;
+
+const TABLE_LIMIT = 250;
+const MAP_MARKER_LIMIT = 10000;
+
+function normalizeText(value) {
+  return String(value || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim();
+}
+
+function debounce(fn, delay) {
+  let timer;
+  return function() {
+    const args = arguments;
+    clearTimeout(timer);
+    timer = setTimeout(function() {
+      fn.apply(null, args);
+    }, delay || 250);
+  };
+}
+
+function showError(message) {
+  const box = document.getElementById('errorBox');
+  box.style.display = 'block';
+  box.textContent = message;
+}
+
+function updateDatetime() {
+  const now = new Date();
+  document.getElementById('datetime').innerHTML =
+    now.toLocaleDateString('es-MX') + ' | ' + now.toLocaleTimeString('es-MX');
+}
+
+updateDatetime();
+setInterval(updateDatetime, 60000);
+
+function showTab(tab) {
+  const isVvu = tab === 'vvu';
+  document.getElementById('vvuSection').classList.toggle('active', isVvu);
+  document.getElementById('lprSection').classList.toggle('active', !isVvu);
+
+  document.getElementById('topTabVvu').classList.toggle('active', isVvu);
+  document.getElementById('topTabLpr').classList.toggle('active', !isVvu);
+
+  document.getElementById('pageTitle').textContent = isVvu ? 'Control VVU' : 'Control LPR';
+  document.getElementById('pageSubtitle').textContent = isVvu ? 'Video Vigilancia Urbana' : 'License Plate Recognition';
+
+  if (isVvu && map) {
+    setTimeout(function() {
+      map.invalidateSize();
+    }, 150);
+  }
+}
+
+function startDashboard() {
+  google.script.run
+    .withSuccessHandler(loadDashboard)
+    .withFailureHandler(function(error) {
+      const msg = error && error.message ? error.message : String(error || 'Error desconocido');
+      showError('No se pudo cargar getDashboardData(): ' + msg);
+      document.getElementById('mainStatus').textContent = 'Error al cargar información VVU.';
+    })
+    .getDashboardData();
+
+  google.script.run
+    .withSuccessHandler(loadLprDashboard)
+    .withFailureHandler(function(error) {
+      const msg = error && error.message ? error.message : String(error || 'Error desconocido');
+      showError('No se pudo cargar getLprDashboardData(): ' + msg);
+      document.getElementById('lprStatus').textContent = 'Error al cargar información LPR.';
+    })
+    .getLprDashboardData();
+}
+
+function loadDashboard(data) {
+  if (!data || !data.registros || !data.municipios || !data.resumen) {
+    showError('La función getDashboardData() no regresó la estructura esperada. Revisa Código.gs.');
+    return;
+  }
+
+  dashboardData = data;
+
+  allData = data.registros.map(function(row) {
+    return {
+      municipio: row.municipio || '',
+      afiliacion: row.afiliacion || '',
+      ip: row.ip || '',
+      dispositivo: row.dispositivo || '',
+      _municipio: normalizeText(row.municipio),
+      _afiliacion: normalizeText(row.afiliacion),
+      _ip: normalizeText(row.ip),
+      _dispositivo: normalizeText(row.dispositivo)
+    };
+  });
+
+  const municipios = data.municipios.map(function(row) {
+    const totalFijas = Number(row.totalFijas || 0) ||
+      ((Number(row.F1 || 0)) + (Number(row.F2 || 0)) + (Number(row.F3 || 0)) + (Number(row.F4 || 0)) + (Number(row.F5 || 0)));
+    row.totalFijas = totalFijas;
+    return row;
+  });
+
+  dashboardData.municipios = municipios;
+
+  fillMunicipioSelect(municipios);
+  fillMunicipioCheckboxes(municipios);
+  renderCards(data.resumen);
+  renderMunicipiosTable(municipios);
+  renderChart(municipios);
+  renderListadoResults(allData.slice(-10).reverse());
+
+  document.getElementById('mainStatus').textContent = 'Información VVU cargada correctamente.';
+
+  setTimeout(renderMapBase, 200);
+  setTimeout(loadMapMarkers, 900);
+}
+
+function loadLprDashboard(data) {
+  if (!data || !data.registros || !data.subcentros || !data.resumen || !data.lprTipos || !data.lprTecnologias) {
+    showError('La función getLprDashboardData() no regresó la estructura esperada. Revisa Código.gs.');
+    return;
+  }
+
+  lprData = data;
+  allLprData = data.registros.map(function(row) {
+    return {
+      tecnologia: row.tecnologia || '',
+      subcentro: row.subcentro || '',
+      ip: row.ip || '',
+      afiliacionCliente: row.afiliacionCliente || '',
+      afiliacionSgt: row.afiliacionSgt || '',
+      serverId: row.serverId || '',
+      deviceId: row.deviceId || '',
+      nombre: row.nombre || '',
+      lpr: row.lpr || '',
+      _tecnologia: normalizeText(row.tecnologia),
+      _subcentro: normalizeText(row.subcentro),
+      _ip: normalizeText(row.ip),
+      _afiliacionCliente: normalizeText(row.afiliacionCliente),
+      _afiliacionSgt: normalizeText(row.afiliacionSgt),
+      _serverId: normalizeText(row.serverId),
+      _deviceId: normalizeText(row.deviceId),
+      _nombre: normalizeText(row.nombre),
+      _lpr: normalizeText(row.lpr)
+    };
+  });
+
+  fillLprTechnologySelects(data.lprTecnologias);
+  fillLprSubcentroSelect(data.subcentros);
+  fillLprTypeFilter(data.lprTipos);
+  fillLprSubcentroCheckboxes(data.subcentros);
+  renderLprCards(data.resumen, data.lprTipos, data.lprTecnologias);
+  renderLprSubcentrosTable(data.subcentros);
+  renderLprChart(data.subcentros);
+  renderLprListadoResults(allLprData.slice(-10).reverse());
+
+  document.getElementById('lprStatus').textContent = 'Información LPR cargada correctamente.';
+}
+
+function fillMunicipioSelect(municipios) {
+  const select = document.getElementById('municipioSelect');
+  select.innerHTML = '<option value="">Todos los municipios</option>';
+
+  municipios.slice().sort(function(a, b) {
+    return a.municipio.localeCompare(b.municipio, 'es');
+  }).forEach(function(item) {
+    const option = document.createElement('option');
+    option.value = item.municipio;
+    option.textContent = item.municipio;
+    select.appendChild(option);
+  });
+}
+
+function fillMunicipioCheckboxes(municipios) {
+  const box = document.getElementById('municipioCheckboxes');
+  let html = '<div class="multi-filter-title">Filtrar por uno o varios municipios</div>';
+
+  municipios.slice().sort(function(a, b) {
+    return a.municipio.localeCompare(b.municipio, 'es');
+  }).forEach(function(item) {
+    html += '<label class="check-item"><input type="checkbox" class="municipioCheck" value="' + escapeHtml(item.municipio) + '"><span>' + escapeHtml(item.municipio) + '</span></label>';
+  });
+
+  box.innerHTML = html;
+
+  Array.from(document.querySelectorAll('.municipioCheck')).forEach(function(check) {
+    check.addEventListener('change', applyListadoFilters);
+  });
+}
+
+function fillLprSubcentroSelect(subcentros) {
+  const select = document.getElementById('lprSubcentroSelect');
+  select.innerHTML = '<option value="">Todos los subcentros</option>';
+
+  getUniqueLprSubcentros(subcentros).forEach(function(item) {
+    const option = document.createElement('option');
+    option.value = item;
+    option.textContent = item;
+    select.appendChild(option);
+  });
+}
+
+function fillLprTechnologySelects(tecnologias) {
+  const selects = [
+    document.getElementById('lprTechnologySelect'),
+    document.getElementById('lprTechnologyListFilter')
+  ];
+
+  selects.forEach(function(select) {
+    select.innerHTML = '<option value="">Todas las tecnologías</option>';
+    tecnologias.forEach(function(tecnologia) {
+      const option = document.createElement('option');
+      option.value = tecnologia;
+      option.textContent = tecnologia;
+      select.appendChild(option);
+    });
+  });
+}
+
+function fillLprTypeFilter(types) {
+  const select = document.getElementById('lprTypeFilter');
+  select.innerHTML = '<option value="">Todos los LPR</option>';
+
+  types.forEach(function(type) {
+    const option = document.createElement('option');
+    option.value = type;
+    option.textContent = type;
+    select.appendChild(option);
+  });
+}
+
+function fillLprSubcentroCheckboxes(subcentros) {
+  const box = document.getElementById('lprSubcentroCheckboxes');
+  let html = '<div class="multi-filter-title">Filtrar por uno o varios subcentros</div>';
+
+  getUniqueLprSubcentros(subcentros).forEach(function(item) {
+    html += '<label class="check-item"><input type="checkbox" class="lprSubcentroCheck" value="' + escapeHtml(item) + '"><span>' + escapeHtml(item) + '</span></label>';
+  });
+
+  box.innerHTML = html;
+
+  Array.from(document.querySelectorAll('.lprSubcentroCheck')).forEach(function(check) {
+    check.addEventListener('change', applyLprListadoFilters);
+  });
+}
+
+function getUniqueLprSubcentros(subcentros) {
+  const names = {};
+  subcentros.forEach(function(item) {
+    if (item.subcentro) {
+      names[item.subcentro] = true;
+    }
+  });
+  return Object.keys(names).sort(function(a, b) {
+    return a.localeCompare(b, 'es');
+  });
+}
+
+function getSelectedMunicipios() {
+  return Array.from(document.querySelectorAll('.municipioCheck:checked')).map(function(check) {
+    return normalizeText(check.value);
+  });
+}
+
+function getSelectedLprSubcentros() {
+  return Array.from(document.querySelectorAll('.lprSubcentroCheck:checked')).map(function(check) {
+    return normalizeText(check.value);
+  });
+}
+
+function clearListadoFilters() {
+  document.getElementById('searchInput').value = '';
+  document.getElementById('deviceFilter').value = '';
+  Array.from(document.querySelectorAll('.municipioCheck')).forEach(function(check) {
+    check.checked = false;
+  });
+  renderListadoResults(allData.slice(-10).reverse());
+}
+
+function clearLprListadoFilters() {
+  document.getElementById('lprSearchInput').value = '';
+  document.getElementById('lprTechnologyListFilter').value = '';
+  document.getElementById('lprTypeFilter').value = '';
+  Array.from(document.querySelectorAll('.lprSubcentroCheck')).forEach(function(check) {
+    check.checked = false;
+  });
+  renderLprListadoResults(allLprData.slice(-10).reverse());
+}
+
+function applyListadoFilters() {
+  const searchValue = normalizeText(document.getElementById('searchInput').value);
+  const deviceValue = normalizeText(document.getElementById('deviceFilter').value);
+  const selectedMunicipios = getSelectedMunicipios();
+
+  if (searchValue === '' && deviceValue === '' && selectedMunicipios.length === 0) {
+    renderListadoResults(allData.slice(-10).reverse());
+    return;
+  }
+
+  const filtered = allData.filter(function(row) {
+    const matchSearch = searchValue === '' ||
+      row._afiliacion.indexOf(searchValue) !== -1 ||
+      row._ip.indexOf(searchValue) !== -1 ||
+      row._municipio.indexOf(searchValue) !== -1 ||
+      row._dispositivo.indexOf(searchValue) !== -1;
+
+    const matchDevice = deviceValue === '' || row._dispositivo === deviceValue;
+    const matchMunicipio = selectedMunicipios.length === 0 || selectedMunicipios.indexOf(row._municipio) !== -1;
+
+    return matchSearch && matchDevice && matchMunicipio;
+  });
+
+  renderListadoResults(filtered);
+}
+
+function applyLprListadoFilters() {
+  const searchValue = normalizeText(document.getElementById('lprSearchInput').value);
+  const technologyValue = normalizeText(document.getElementById('lprTechnologyListFilter').value);
+  const typeValue = normalizeText(document.getElementById('lprTypeFilter').value);
+  const selectedSubcentros = getSelectedLprSubcentros();
+
+  if (searchValue === '' && technologyValue === '' && typeValue === '' && selectedSubcentros.length === 0) {
+    renderLprListadoResults(allLprData.slice(-10).reverse());
+    return;
+  }
+
+  const filtered = allLprData.filter(function(row) {
+    const matchSearch = searchValue === '' ||
+      row._afiliacionCliente.indexOf(searchValue) !== -1 ||
+      row._afiliacionSgt.indexOf(searchValue) !== -1 ||
+      row._ip.indexOf(searchValue) !== -1 ||
+      row._tecnologia.indexOf(searchValue) !== -1 ||
+      row._subcentro.indexOf(searchValue) !== -1 ||
+      row._nombre.indexOf(searchValue) !== -1 ||
+      row._serverId.indexOf(searchValue) !== -1 ||
+      row._deviceId.indexOf(searchValue) !== -1 ||
+      row._lpr.indexOf(searchValue) !== -1;
+
+    const matchTechnology = technologyValue === '' || row._tecnologia === technologyValue;
+    const matchType = typeValue === '' || row._lpr === typeValue;
+    const matchSubcentro = selectedSubcentros.length === 0 || selectedSubcentros.indexOf(row._subcentro) !== -1;
+
+    return matchSearch && matchTechnology && matchType && matchSubcentro;
+  });
+
+  renderLprListadoResults(filtered);
+}
+
+function applyMunicipioFilter() {
+  const selectValue = normalizeText(document.getElementById('municipioSelect').value);
+  const searchValue = normalizeText(document.getElementById('municipioSearch').value);
+
+  const municipiosFiltrados = dashboardData.municipios.filter(function(row) {
+    const municipio = normalizeText(row.municipio);
+    return (selectValue === '' || municipio === selectValue) &&
+           (searchValue === '' || municipio.indexOf(searchValue) !== -1);
+  });
+
+  const registrosFiltrados = allData.filter(function(row) {
+    return (selectValue === '' || row._municipio === selectValue) &&
+           (searchValue === '' || row._municipio.indexOf(searchValue) !== -1);
+  });
+
+  renderMunicipiosTable(municipiosFiltrados);
+  renderChart(municipiosFiltrados);
+  renderListadoResults(registrosFiltrados.slice(-10).reverse());
+}
+
+function applyLprSubcentroFilter() {
+  const technologyValue = normalizeText(document.getElementById('lprTechnologySelect').value);
+  const selectValue = normalizeText(document.getElementById('lprSubcentroSelect').value);
+  const searchValue = normalizeText(document.getElementById('lprSubcentroSearch').value);
+
+  const subcentrosFiltrados = lprData.subcentros.filter(function(row) {
+    const subcentro = normalizeText(row.subcentro);
+    const tecnologia = normalizeText(row.tecnologia);
+    return (technologyValue === '' || tecnologia === technologyValue) &&
+           (selectValue === '' || subcentro === selectValue) &&
+           (searchValue === '' || subcentro.indexOf(searchValue) !== -1);
+  });
+
+  const registrosFiltrados = allLprData.filter(function(row) {
+    return (technologyValue === '' || row._tecnologia === technologyValue) &&
+           (selectValue === '' || row._subcentro === selectValue) &&
+           (searchValue === '' || row._subcentro.indexOf(searchValue) !== -1);
+  });
+
+  renderLprSubcentrosTable(subcentrosFiltrados);
+  renderLprChart(subcentrosFiltrados);
+  renderLprListadoResults(registrosFiltrados.slice(-10).reverse());
+}
+
+function renderCards(resumen) {
+  const cards = document.getElementById('cards');
+  const devices = ['PTZ', 'F1', 'F2', 'F3', 'F4', 'F5'];
+
+  const icons = {
+    PTZ: 'https://drive.google.com/thumbnail?id=1xaBclcdN9MlsiEVdjKoaTqNEazTvTre1&sz=w300',
+    F1: 'https://drive.google.com/thumbnail?id=1MvfGSeITCNdDbclZ1sNVdw7P1FHR8uJ0&sz=w300',
+    F2: 'https://drive.google.com/thumbnail?id=1MvfGSeITCNdDbclZ1sNVdw7P1FHR8uJ0&sz=w300',
+    F3: 'https://drive.google.com/thumbnail?id=1MvfGSeITCNdDbclZ1sNVdw7P1FHR8uJ0&sz=w300',
+    F4: 'https://drive.google.com/thumbnail?id=1MvfGSeITCNdDbclZ1sNVdw7P1FHR8uJ0&sz=w300',
+    F5: 'https://drive.google.com/thumbnail?id=1MvfGSeITCNdDbclZ1sNVdw7P1FHR8uJ0&sz=w300'
+  };
+
+  let html = '<div class="card"><div class="card-top"><div><h3>Total VVU</h3><span>' + (resumen.total || 0) + '</span></div></div></div>';
+
+  devices.forEach(function(device) {
+    html += '<div class="card"><div class="card-top"><div><h3>' + device + '</h3><span>' + (resumen[device] || 0) + '</span></div><img class="device-icon" loading="lazy" src="' + icons[device] + '"></div></div>';
+  });
+
+  cards.innerHTML = html;
+}
+
+function renderLprCards(resumen, types, technologies) {
+  const cards = document.getElementById('lprCards');
+  const fixedCameraIcon = 'https://drive.google.com/thumbnail?id=1MvfGSeITCNdDbclZ1sNVdw7P1FHR8uJ0&sz=w300';
+  const pmiIcon = 'data:image/png;base64,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';
+  const arcoIcon = 'data:image/png;base64,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';
+  let html = '<div class="card"><div class="card-top"><div><h3>Total LPR</h3><span>' + (resumen.total || 0) + '</span></div><div class="plate-badge">LPR</div></div></div>';
+
+  technologies.forEach(function(tecnologia) {
+    const normalizedTechnology = normalizeText(tecnologia);
+    const iconHtml = normalizedTechnology === 'pmi'
+      ? '<img class="technology-icon" loading="lazy" src="' + pmiIcon + '">'
+      : normalizedTechnology === 'arco'
+        ? '<img class="technology-icon-wide" loading="lazy" src="' + arcoIcon + '">'
+      : '<div class="plate-badge">' + escapeHtml(tecnologia) + '</div>';
+    html += '<div class="card"><div class="card-top"><div><h3>' + escapeHtml(tecnologia) + '</h3><span>' + ((resumen.tecnologias && resumen.tecnologias[tecnologia]) || 0) + '</span></div>' + iconHtml + '</div></div>';
+  });
+
+  types.forEach(function(type) {
+    html += '<div class="card"><div class="card-top"><div><h3>' + escapeHtml(type) + '</h3><span>' + (resumen.tipos[type] || 0) + '</span></div><img class="device-icon" loading="lazy" src="' + fixedCameraIcon + '"></div></div>';
+  });
+
+  cards.innerHTML = html;
+}
+
+function renderListadoResults(rows) {
+  currentListado = rows;
+  renderTable(rows.slice(0, TABLE_LIMIT));
+
+  const info = document.getElementById('listadoInfo');
+  if (rows.length > TABLE_LIMIT) {
+    info.textContent = 'Mostrando ' + TABLE_LIMIT + ' de ' + rows.length + ' registros filtrados. El CSV descarga todos los registros filtrados.';
+  } else {
+    info.textContent = 'Mostrando ' + rows.length + ' registro(s).';
+  }
+}
+
+function renderLprListadoResults(rows) {
+  currentLprListado = rows;
+  renderLprTable(rows.slice(0, TABLE_LIMIT));
+
+  const info = document.getElementById('lprListadoInfo');
+  if (rows.length > TABLE_LIMIT) {
+    info.textContent = 'Mostrando ' + TABLE_LIMIT + ' de ' + rows.length + ' registros LPR filtrados. El CSV descarga todos los registros filtrados.';
+  } else {
+    info.textContent = 'Mostrando ' + rows.length + ' registro(s) LPR.';
+  }
+}
+
+function renderTable(rows) {
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = rows.map(function(row) {
+    return '<tr><td>' + escapeHtml(row.municipio) + '</td><td>' + escapeHtml(row.afiliacion) + '</td><td>' + escapeHtml(row.ip) + '</td><td>' + escapeHtml(row.dispositivo) + '</td></tr>';
+  }).join('');
+}
+
+function renderLprTable(rows) {
+  const tbody = document.getElementById('lprTableBody');
+  tbody.innerHTML = rows.map(function(row) {
+    return '<tr>' +
+      '<td>' + escapeHtml(row.tecnologia) + '</td>' +
+      '<td>' + escapeHtml(row.subcentro) + '</td>' +
+      '<td>' + escapeHtml(row.lpr) + '</td>' +
+      '<td>' + escapeHtml(row.afiliacionCliente) + '</td>' +
+      '<td>' + escapeHtml(row.afiliacionSgt) + '</td>' +
+      '<td>' + escapeHtml(row.ip) + '</td>' +
+      '<td>' + escapeHtml(row.nombre) + '</td>' +
+      '<td>' + escapeHtml(row.serverId) + '</td>' +
+      '<td>' + escapeHtml(row.deviceId) + '</td>' +
+      '</tr>';
+  }).join('');
+}
+
+function renderMunicipiosTable(data) {
+  currentMunicipios = data;
+  const tbody = document.getElementById('municipiosTable');
+
+  tbody.innerHTML = data.map(function(row) {
+    const totalFijas = row.totalFijas || ((row.F1 || 0) + (row.F2 || 0) + (row.F3 || 0) + (row.F4 || 0) + (row.F5 || 0));
+    return '<tr>' +
+      '<td>' + escapeHtml(row.municipio) + '</td>' +
+      '<td><b>' + (row.total || 0) + '</b></td>' +
+      '<td><b>' + totalFijas + '</b></td>' +
+      '<td>' + (row.PTZ || 0) + '</td>' +
+      '<td>' + (row.F1 || 0) + '</td>' +
+      '<td>' + (row.F2 || 0) + '</td>' +
+      '<td>' + (row.F3 || 0) + '</td>' +
+      '<td>' + (row.F4 || 0) + '</td>' +
+      '<td>' + (row.F5 || 0) + '</td>' +
+      '</tr>';
+  }).join('');
+}
+
+function renderLprSubcentrosTable(data) {
+  currentLprSubcentros = data;
+  const head = document.getElementById('lprSubcentrosHead');
+  const tbody = document.getElementById('lprSubcentrosTable');
+  const types = lprData ? lprData.lprTipos : [];
+
+  head.innerHTML = '<th>Tecnología</th><th>Subcentro</th><th>Total</th>' + types.map(function(type) {
+    return '<th>' + escapeHtml(type) + '</th>';
+  }).join('');
+
+  tbody.innerHTML = data.map(function(row) {
+    let html = '<tr><td>' + escapeHtml(row.tecnologia) + '</td><td>' + escapeHtml(row.subcentro) + '</td><td><b>' + (row.total || 0) + '</b></td>';
+    types.forEach(function(type) {
+      html += '<td>' + ((row.tipos && row.tipos[type]) || 0) + '</td>';
+    });
+    html += '</tr>';
+    return html;
+  }).join('');
+}
+
+function renderChart(data) {
+  const labels = data.map(function(x) { return x.municipio; });
+  const totals = data.map(function(x) { return x.total; });
+  const ctx = document.getElementById('municipiosChart');
+
+  if (municipioChart) {
+    municipioChart.data.labels = labels;
+    municipioChart.data.datasets[0].data = totals;
+    municipioChart.update('none');
+    return;
+  }
+
+  municipioChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Total Dispositivos VVU',
+        data: totals,
+        backgroundColor: '#10b981'
+      }]
+    },
+    options: {
+      responsive: true,
+      animation: false,
+      plugins: { legend: { labels: { color: 'white' } } },
+      scales: {
+        x: { ticks: { color: 'white' } },
+        y: { ticks: { color: 'white' } }
+      }
+    }
+  });
+}
+
+function renderLprChart(data) {
+  const labels = data.map(function(x) { return x.tecnologia + ' - ' + x.subcentro; });
+  const types = lprData ? lprData.lprTipos : [];
+  const colors = ['#10b981', '#38bdf8', '#f59e0b', '#a78bfa', '#f43f5e'];
+  const datasets = types.map(function(type, index) {
+    return {
+      label: type,
+      data: data.map(function(x) { return (x.tipos && x.tipos[type]) || 0; }),
+      backgroundColor: colors[index % colors.length]
+    };
+  });
+  const ctx = document.getElementById('lprChart');
+
+  if (lprChart) {
+    lprChart.data.labels = labels;
+    lprChart.data.datasets = datasets;
+    lprChart.update('none');
+    return;
+  }
+
+  lprChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: datasets
+    },
+    options: {
+      responsive: true,
+      animation: false,
+      plugins: { legend: { labels: { color: 'white' } } },
+      scales: {
+        x: { stacked: true, ticks: { color: 'white' } },
+        y: { stacked: true, ticks: { color: 'white' } }
+      }
+    }
+  });
+}
+
+function renderMapBase() {
+  if (!document.getElementById('map') || map) return;
+
+  map = L.map('map', { preferCanvas: true }).setView([28.6353, -106.0889], 7);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  markerLayer = L.layerGroup().addTo(map);
+}
+
+function loadMapMarkers() {
+  if (!markerLayer) return;
+
+  document.getElementById('mapStatus').textContent = 'Cargando ubicaciones del mapa...';
+
+  google.script.run
+    .withSuccessHandler(function(markers) {
+      renderMapMarkers(markers || []);
+    })
+    .withFailureHandler(function() {
+      document.getElementById('mapStatus').textContent = 'El mapa no se cargó, pero el dashboard ya está disponible.';
+    })
+    .getMapMarkers(MAP_MARKER_LIMIT);
+}
+
+function renderMapMarkers(markers) {
+  if (!markerLayer) return;
+
+  markerLayer.clearLayers();
+  markers.slice(0, MAP_MARKER_LIMIT).forEach(function(item) {
+    L.circleMarker([item.lat, item.lng], { radius: 5 })
+      .addTo(markerLayer)
+      .bindPopup('<b>' + escapeHtml(item.afiliacion) + '</b><br>' + escapeHtml(item.dispositivo) + '<br>' + escapeHtml(item.ip) + '<br>' + escapeHtml(item.municipio));
+  });
+
+  document.getElementById('mapStatus').textContent = 'Ubicaciones cargadas: ' + markers.length;
+}
+
+function cleanListadoRows(rows) {
+  return rows.map(function(row) {
+    return {
+      Municipio: row.municipio,
+      Afiliacion: row.afiliacion,
+      IP: row.ip,
+      Dispositivo: row.dispositivo
+    };
+  });
+}
+
+function cleanMunicipioRows(rows) {
+  return rows.map(function(row) {
+    return {
+      Municipio: row.municipio,
+      Total: row.total,
+      Total_Fijas: row.totalFijas || ((row.F1 || 0) + (row.F2 || 0) + (row.F3 || 0) + (row.F4 || 0) + (row.F5 || 0)),
+      PTZ: row.PTZ || 0,
+      F1: row.F1 || 0,
+      F2: row.F2 || 0,
+      F3: row.F3 || 0,
+      F4: row.F4 || 0,
+      F5: row.F5 || 0
+    };
+  });
+}
+
+function cleanLprRows(rows) {
+  return rows.map(function(row) {
+    return {
+      Tecnologia: row.tecnologia,
+      Subcentro: row.subcentro,
+      N_LPR: row.lpr,
+      Afiliacion_Cliente: row.afiliacionCliente,
+      Afiliacion_SGT: row.afiliacionSgt,
+      IP: row.ip,
+      Nombre: row.nombre,
+      Server_ID: row.serverId,
+      Device_ID: row.deviceId
+    };
+  });
+}
+
+function cleanLprSubcentroRows(rows) {
+  const types = lprData ? lprData.lprTipos : [];
+  return rows.map(function(row) {
+    const item = {
+      Tecnologia: row.tecnologia,
+      Subcentro: row.subcentro,
+      Total: row.total
+    };
+    types.forEach(function(type) {
+      item[type.replace(/\s+/g, '_')] = (row.tipos && row.tipos[type]) || 0;
+    });
+    return item;
+  });
+}
+
+function downloadCSV(filename, rows) {
+  if (!rows || rows.length === 0) {
+    alert('No hay datos para descargar.');
+    return;
+  }
+
+  const headers = Object.keys(rows[0]);
+  const csv = [
+    headers.join(','),
+    ...rows.map(function(row) {
+      return headers.map(function(header) {
+        const value = row[header] == null ? '' : row[header];
+        return '"' + String(value).replace(/"/g, '""') + '"';
+      }).join(',');
+    })
+  ].join('\n');
+
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  link.click();
+}
+
+function downloadListadoCSV() {
+  downloadCSV('listado_general_vvu_filtrado.csv', cleanListadoRows(currentListado));
+}
+
+function downloadMunicipiosCSV() {
+  downloadCSV('totales_vvu_por_municipio_filtrado.csv', cleanMunicipioRows(currentMunicipios));
+}
+
+function downloadLprListadoCSV() {
+  downloadCSV('listado_general_lpr_filtrado.csv', cleanLprRows(currentLprListado));
+}
+
+function downloadLprSubcentrosCSV() {
+  downloadCSV('totales_lpr_por_tecnologia_subcentro_filtrado.csv', cleanLprSubcentroRows(currentLprSubcentros));
+}
+
+function escapeHtml(value) {
+  return String(value == null ? '' : value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+const debouncedListadoFilter = debounce(applyListadoFilters, 250);
+const debouncedMunicipioFilter = debounce(applyMunicipioFilter, 250);
+const debouncedLprListadoFilter = debounce(applyLprListadoFilters, 250);
+const debouncedLprSubcentroFilter = debounce(applyLprSubcentroFilter, 250);
+
+document.getElementById('searchInput').addEventListener('input', debouncedListadoFilter);
+document.getElementById('deviceFilter').addEventListener('change', applyListadoFilters);
+document.getElementById('municipioSelect').addEventListener('change', applyMunicipioFilter);
+document.getElementById('municipioSearch').addEventListener('input', debouncedMunicipioFilter);
+
+document.getElementById('lprSearchInput').addEventListener('input', debouncedLprListadoFilter);
+document.getElementById('lprTechnologyListFilter').addEventListener('change', applyLprListadoFilters);
+document.getElementById('lprTypeFilter').addEventListener('change', applyLprListadoFilters);
+document.getElementById('lprTechnologySelect').addEventListener('change', applyLprSubcentroFilter);
+document.getElementById('lprSubcentroSelect').addEventListener('change', applyLprSubcentroFilter);
+document.getElementById('lprSubcentroSearch').addEventListener('input', debouncedLprSubcentroFilter);
+
+startDashboard();
+</script>
+</body>
+</html>
