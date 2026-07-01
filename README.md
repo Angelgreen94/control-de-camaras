@@ -26,6 +26,7 @@ Columnas principales:
 
 - `Direccion IP`
 - `Afiliacion Cliente`
+- `Servidor`
 - `Server ID`
 - `Device ID`
 - `Nombre`
