@@ -231,7 +231,7 @@
     }
 
     .lpr-listado-filters {
-      grid-template-columns: 1fr 170px 190px 330px;
+      grid-template-columns: minmax(300px, 1fr) 170px 190px 210px 300px;
     }
 
     .multi-filter {
@@ -514,12 +514,15 @@
       <h2>Listado General LPR</h2>
 
       <div class="listado-filters lpr-listado-filters">
-        <input type="text" id="lprSearchInput" placeholder="Buscar por afiliación, IP, tecnología, subcentro, nombre o LPR...">
+        <input type="text" id="lprSearchInput" placeholder="Buscar por afiliación, IP, tecnología, subcentro, servidor, nombre o LPR...">
         <select id="lprTechnologyListFilter">
           <option value="">Todas las tecnologías</option>
         </select>
         <select id="lprTypeFilter">
           <option value="">Todos los LPR</option>
+        </select>
+        <select id="lprServerFilter">
+          <option value="">Todos los servidores</option>
         </select>
         <div id="lprSubcentroCheckboxes" class="multi-filter">
           <div class="multi-filter-title">Filtrar por uno o varios subcentros</div>
@@ -542,6 +545,7 @@
               <th>Afiliación SGT</th>
               <th>IP</th>
               <th>Nombre</th>
+              <th>Servidor</th>
               <th>Server ID</th>
               <th>Device ID</th>
             </tr>
@@ -698,6 +702,7 @@ function loadLprDashboard(data) {
       ip: row.ip || '',
       afiliacionCliente: row.afiliacionCliente || '',
       afiliacionSgt: row.afiliacionSgt || '',
+      servidor: row.servidor || '',
       serverId: row.serverId || '',
       deviceId: row.deviceId || '',
       nombre: row.nombre || '',
@@ -707,6 +712,7 @@ function loadLprDashboard(data) {
       _ip: normalizeText(row.ip),
       _afiliacionCliente: normalizeText(row.afiliacionCliente),
       _afiliacionSgt: normalizeText(row.afiliacionSgt),
+      _servidor: normalizeText(row.servidor),
       _serverId: normalizeText(row.serverId),
       _deviceId: normalizeText(row.deviceId),
       _nombre: normalizeText(row.nombre),
@@ -717,6 +723,7 @@ function loadLprDashboard(data) {
   fillLprTechnologySelects(data.lprTecnologias);
   fillLprSubcentroSelect(data.subcentros);
   fillLprTypeFilter(data.lprTipos);
+  fillLprServerFilter(allLprData);
   fillLprSubcentroCheckboxes(data.subcentros);
   renderLprCards(data.resumen, data.lprTipos, data.lprTecnologias);
   renderLprSubcentrosTable(data.subcentros);
@@ -798,6 +805,27 @@ function fillLprTypeFilter(types) {
   });
 }
 
+function fillLprServerFilter(rows) {
+  const select = document.getElementById('lprServerFilter');
+  const servers = {};
+
+  rows.forEach(function(row) {
+    if (row.servidor) {
+      servers[row.servidor] = true;
+    }
+  });
+
+  select.innerHTML = '<option value="">Todos los servidores</option>';
+  Object.keys(servers).sort(function(a, b) {
+    return a.localeCompare(b, 'es', { numeric: true });
+  }).forEach(function(server) {
+    const option = document.createElement('option');
+    option.value = server;
+    option.textContent = server;
+    select.appendChild(option);
+  });
+}
+
 function fillLprSubcentroCheckboxes(subcentros) {
   const box = document.getElementById('lprSubcentroCheckboxes');
   let html = '<div class="multi-filter-title">Filtrar por uno o varios subcentros</div>';
@@ -850,6 +878,7 @@ function clearLprListadoFilters() {
   document.getElementById('lprSearchInput').value = '';
   document.getElementById('lprTechnologyListFilter').value = '';
   document.getElementById('lprTypeFilter').value = '';
+  document.getElementById('lprServerFilter').value = '';
   Array.from(document.querySelectorAll('.lprSubcentroCheck')).forEach(function(check) {
     check.checked = false;
   });
@@ -886,9 +915,10 @@ function applyLprListadoFilters() {
   const searchValue = normalizeText(document.getElementById('lprSearchInput').value);
   const technologyValue = normalizeText(document.getElementById('lprTechnologyListFilter').value);
   const typeValue = normalizeText(document.getElementById('lprTypeFilter').value);
+  const serverValue = normalizeText(document.getElementById('lprServerFilter').value);
   const selectedSubcentros = getSelectedLprSubcentros();
 
-  if (searchValue === '' && technologyValue === '' && typeValue === '' && selectedSubcentros.length === 0) {
+  if (searchValue === '' && technologyValue === '' && typeValue === '' && serverValue === '' && selectedSubcentros.length === 0) {
     renderLprListadoResults(allLprData.slice(-10).reverse());
     return;
   }
@@ -901,15 +931,17 @@ function applyLprListadoFilters() {
       row._tecnologia.indexOf(searchValue) !== -1 ||
       row._subcentro.indexOf(searchValue) !== -1 ||
       row._nombre.indexOf(searchValue) !== -1 ||
+      row._servidor.indexOf(searchValue) !== -1 ||
       row._serverId.indexOf(searchValue) !== -1 ||
       row._deviceId.indexOf(searchValue) !== -1 ||
       row._lpr.indexOf(searchValue) !== -1;
 
     const matchTechnology = technologyValue === '' || row._tecnologia === technologyValue;
     const matchType = typeValue === '' || row._lpr === typeValue;
+    const matchServer = serverValue === '' || row._servidor === serverValue;
     const matchSubcentro = selectedSubcentros.length === 0 || selectedSubcentros.indexOf(row._subcentro) !== -1;
 
-    return matchSearch && matchTechnology && matchType && matchSubcentro;
+    return matchSearch && matchTechnology && matchType && matchServer && matchSubcentro;
   });
 
   renderLprListadoResults(filtered);
@@ -1047,6 +1079,7 @@ function renderLprTable(rows) {
       '<td>' + escapeHtml(row.afiliacionSgt) + '</td>' +
       '<td>' + escapeHtml(row.ip) + '</td>' +
       '<td>' + escapeHtml(row.nombre) + '</td>' +
+      '<td>' + escapeHtml(row.servidor) + '</td>' +
       '<td>' + escapeHtml(row.serverId) + '</td>' +
       '<td>' + escapeHtml(row.deviceId) + '</td>' +
       '</tr>';
@@ -1241,6 +1274,7 @@ function cleanLprRows(rows) {
       Afiliacion_SGT: row.afiliacionSgt,
       IP: row.ip,
       Nombre: row.nombre,
+      Servidor: row.servidor,
       Server_ID: row.serverId,
       Device_ID: row.deviceId
     };
@@ -1324,6 +1358,7 @@ document.getElementById('municipioSearch').addEventListener('input', debouncedMu
 document.getElementById('lprSearchInput').addEventListener('input', debouncedLprListadoFilter);
 document.getElementById('lprTechnologyListFilter').addEventListener('change', applyLprListadoFilters);
 document.getElementById('lprTypeFilter').addEventListener('change', applyLprListadoFilters);
+document.getElementById('lprServerFilter').addEventListener('change', applyLprListadoFilters);
 document.getElementById('lprTechnologySelect').addEventListener('change', applyLprSubcentroFilter);
 document.getElementById('lprSubcentroSelect').addEventListener('change', applyLprSubcentroFilter);
 document.getElementById('lprSubcentroSearch').addEventListener('input', debouncedLprSubcentroFilter);
