@@ -65,6 +65,7 @@ function getVvuSheetData_() {
     ip: findHeader_(headers, ['IP', 'Direccion IP', 'Dirección IP']),
     afiliacion: findHeader_(headers, ['Afiliacion', 'Afiliación']),
     dispositivo: findHeader_(headers, ['Dispositivo']),
+    servidor: findHeader_(headers, ['Servidor', 'Server']),
     coordenadas: findHeader_(headers, ['Coordenadas'])
   };
 
@@ -100,6 +101,7 @@ function getDashboardData() {
     const ip = String(row[idx.ip] || '').trim();
     const afiliacion = String(row[idx.afiliacion] || '').trim();
     const dispositivo = String(row[idx.dispositivo] || '').trim().toUpperCase();
+    const servidor = idx.servidor === -1 ? '' : String(row[idx.servidor] || '').trim();
 
     resumen.total++;
 
@@ -139,7 +141,8 @@ function getDashboardData() {
       municipio: municipio,
       ip: ip,
       afiliacion: afiliacion,
-      dispositivo: dispositivo
+      dispositivo: dispositivo,
+      servidor: servidor
     });
   });
 
@@ -156,7 +159,6 @@ function getLprSheetData_() {
   const idx = {
     ip: findHeader_(headers, ['Direccion IP', 'Dirección IP', 'IP']),
     afiliacionCliente: findHeader_(headers, ['Afiliacion Cliente', 'Afiliación Cliente']),
-    servidor: findHeader_(headers, ['Servidor', 'Server']),
     serverId: findHeader_(headers, ['Server ID']),
     deviceId: findHeader_(headers, ['Device ID']),
     nombre: findHeader_(headers, ['Nombre']),
@@ -212,7 +214,6 @@ function getLprDashboardData() {
     const subcentro = String(row[idx.subcentro] || 'Sin subcentro').trim() || 'Sin subcentro';
     const lpr = getLprType_(row, idx, nombre);
     const tecnologia = idx.tecnologia === -1 ? '' : String(row[idx.tecnologia] || '').trim();
-    const servidor = idx.servidor === -1 ? '' : String(row[idx.servidor] || '').trim();
     const serverId = idx.serverId === -1 ? '' : String(row[idx.serverId] || '').trim();
     const deviceId = idx.deviceId === -1 ? '' : String(row[idx.deviceId] || '').trim();
 
@@ -254,7 +255,6 @@ function getLprDashboardData() {
       ip: ip,
       afiliacionCliente: afiliacionCliente,
       afiliacionSgt: afiliacionSgt,
-      servidor: servidor,
       serverId: serverId,
       deviceId: deviceId,
       nombre: nombre,

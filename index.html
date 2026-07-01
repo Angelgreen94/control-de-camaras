@@ -224,14 +224,14 @@
 
     .listado-filters {
       display: grid;
-      grid-template-columns: 1fr 190px 330px;
+      grid-template-columns: minmax(300px, 1fr) 190px 210px 300px;
       gap: 14px;
       align-items: start;
       margin-bottom: 14px;
     }
 
     .lpr-listado-filters {
-      grid-template-columns: minmax(300px, 1fr) 170px 190px 210px 300px;
+      grid-template-columns: 1fr 170px 190px 330px;
     }
 
     .multi-filter {
@@ -434,7 +434,7 @@
       <h2>Listado General VVU</h2>
 
       <div class="listado-filters">
-        <input type="text" id="searchInput" placeholder="Buscar por afiliación, IP, municipio o dispositivo...">
+        <input type="text" id="searchInput" placeholder="Buscar por afiliación, IP, municipio, dispositivo o servidor...">
         <select id="deviceFilter">
           <option value="">Todos los dispositivos</option>
           <option value="PTZ">PTZ</option>
@@ -443,6 +443,9 @@
           <option value="F3">F3</option>
           <option value="F4">F4</option>
           <option value="F5">F5</option>
+        </select>
+        <select id="serverFilter">
+          <option value="">Todos los servidores</option>
         </select>
         <div id="municipioCheckboxes" class="multi-filter">
           <div class="multi-filter-title">Filtrar por uno o varios municipios</div>
@@ -462,6 +465,7 @@
               <th>Afiliación</th>
               <th>IP</th>
               <th>Dispositivo</th>
+              <th>Servidor</th>
             </tr>
           </thead>
           <tbody id="tableBody"></tbody>
@@ -514,15 +518,12 @@
       <h2>Listado General LPR</h2>
 
       <div class="listado-filters lpr-listado-filters">
-        <input type="text" id="lprSearchInput" placeholder="Buscar por afiliación, IP, tecnología, subcentro, servidor, nombre o LPR...">
+        <input type="text" id="lprSearchInput" placeholder="Buscar por afiliación, IP, tecnología, subcentro, nombre o LPR...">
         <select id="lprTechnologyListFilter">
           <option value="">Todas las tecnologías</option>
         </select>
         <select id="lprTypeFilter">
           <option value="">Todos los LPR</option>
-        </select>
-        <select id="lprServerFilter">
-          <option value="">Todos los servidores</option>
         </select>
         <div id="lprSubcentroCheckboxes" class="multi-filter">
           <div class="multi-filter-title">Filtrar por uno o varios subcentros</div>
@@ -545,7 +546,6 @@
               <th>Afiliación SGT</th>
               <th>IP</th>
               <th>Nombre</th>
-              <th>Servidor</th>
               <th>Server ID</th>
               <th>Device ID</th>
             </tr>
@@ -659,10 +659,12 @@ function loadDashboard(data) {
       afiliacion: row.afiliacion || '',
       ip: row.ip || '',
       dispositivo: row.dispositivo || '',
+      servidor: row.servidor || '',
       _municipio: normalizeText(row.municipio),
       _afiliacion: normalizeText(row.afiliacion),
       _ip: normalizeText(row.ip),
-      _dispositivo: normalizeText(row.dispositivo)
+      _dispositivo: normalizeText(row.dispositivo),
+      _servidor: normalizeText(row.servidor)
     };
   });
 
@@ -677,6 +679,7 @@ function loadDashboard(data) {
 
   fillMunicipioSelect(municipios);
   fillMunicipioCheckboxes(municipios);
+  fillServerFilter(allData);
   renderCards(data.resumen);
   renderMunicipiosTable(municipios);
   renderChart(municipios);
@@ -702,7 +705,6 @@ function loadLprDashboard(data) {
       ip: row.ip || '',
       afiliacionCliente: row.afiliacionCliente || '',
       afiliacionSgt: row.afiliacionSgt || '',
-      servidor: row.servidor || '',
       serverId: row.serverId || '',
       deviceId: row.deviceId || '',
       nombre: row.nombre || '',
@@ -712,7 +714,6 @@ function loadLprDashboard(data) {
       _ip: normalizeText(row.ip),
       _afiliacionCliente: normalizeText(row.afiliacionCliente),
       _afiliacionSgt: normalizeText(row.afiliacionSgt),
-      _servidor: normalizeText(row.servidor),
       _serverId: normalizeText(row.serverId),
       _deviceId: normalizeText(row.deviceId),
       _nombre: normalizeText(row.nombre),
@@ -723,7 +724,6 @@ function loadLprDashboard(data) {
   fillLprTechnologySelects(data.lprTecnologias);
   fillLprSubcentroSelect(data.subcentros);
   fillLprTypeFilter(data.lprTipos);
-  fillLprServerFilter(allLprData);
   fillLprSubcentroCheckboxes(data.subcentros);
   renderLprCards(data.resumen, data.lprTipos, data.lprTecnologias);
   renderLprSubcentrosTable(data.subcentros);
@@ -805,8 +805,8 @@ function fillLprTypeFilter(types) {
   });
 }
 
-function fillLprServerFilter(rows) {
-  const select = document.getElementById('lprServerFilter');
+function fillServerFilter(rows) {
+  const select = document.getElementById('serverFilter');
   const servers = {};
 
   rows.forEach(function(row) {
@@ -868,6 +868,7 @@ function getSelectedLprSubcentros() {
 function clearListadoFilters() {
   document.getElementById('searchInput').value = '';
   document.getElementById('deviceFilter').value = '';
+  document.getElementById('serverFilter').value = '';
   Array.from(document.querySelectorAll('.municipioCheck')).forEach(function(check) {
     check.checked = false;
   });
@@ -878,7 +879,6 @@ function clearLprListadoFilters() {
   document.getElementById('lprSearchInput').value = '';
   document.getElementById('lprTechnologyListFilter').value = '';
   document.getElementById('lprTypeFilter').value = '';
-  document.getElementById('lprServerFilter').value = '';
   Array.from(document.querySelectorAll('.lprSubcentroCheck')).forEach(function(check) {
     check.checked = false;
   });
@@ -888,9 +888,10 @@ function clearLprListadoFilters() {
 function applyListadoFilters() {
   const searchValue = normalizeText(document.getElementById('searchInput').value);
   const deviceValue = normalizeText(document.getElementById('deviceFilter').value);
+  const serverValue = normalizeText(document.getElementById('serverFilter').value);
   const selectedMunicipios = getSelectedMunicipios();
 
-  if (searchValue === '' && deviceValue === '' && selectedMunicipios.length === 0) {
+  if (searchValue === '' && deviceValue === '' && serverValue === '' && selectedMunicipios.length === 0) {
     renderListadoResults(allData.slice(-10).reverse());
     return;
   }
@@ -900,12 +901,14 @@ function applyListadoFilters() {
       row._afiliacion.indexOf(searchValue) !== -1 ||
       row._ip.indexOf(searchValue) !== -1 ||
       row._municipio.indexOf(searchValue) !== -1 ||
-      row._dispositivo.indexOf(searchValue) !== -1;
+      row._dispositivo.indexOf(searchValue) !== -1 ||
+      row._servidor.indexOf(searchValue) !== -1;
 
     const matchDevice = deviceValue === '' || row._dispositivo === deviceValue;
+    const matchServer = serverValue === '' || row._servidor === serverValue;
     const matchMunicipio = selectedMunicipios.length === 0 || selectedMunicipios.indexOf(row._municipio) !== -1;
 
-    return matchSearch && matchDevice && matchMunicipio;
+    return matchSearch && matchDevice && matchServer && matchMunicipio;
   });
 
   renderListadoResults(filtered);
@@ -915,10 +918,9 @@ function applyLprListadoFilters() {
   const searchValue = normalizeText(document.getElementById('lprSearchInput').value);
   const technologyValue = normalizeText(document.getElementById('lprTechnologyListFilter').value);
   const typeValue = normalizeText(document.getElementById('lprTypeFilter').value);
-  const serverValue = normalizeText(document.getElementById('lprServerFilter').value);
   const selectedSubcentros = getSelectedLprSubcentros();
 
-  if (searchValue === '' && technologyValue === '' && typeValue === '' && serverValue === '' && selectedSubcentros.length === 0) {
+  if (searchValue === '' && technologyValue === '' && typeValue === '' && selectedSubcentros.length === 0) {
     renderLprListadoResults(allLprData.slice(-10).reverse());
     return;
   }
@@ -931,17 +933,15 @@ function applyLprListadoFilters() {
       row._tecnologia.indexOf(searchValue) !== -1 ||
       row._subcentro.indexOf(searchValue) !== -1 ||
       row._nombre.indexOf(searchValue) !== -1 ||
-      row._servidor.indexOf(searchValue) !== -1 ||
       row._serverId.indexOf(searchValue) !== -1 ||
       row._deviceId.indexOf(searchValue) !== -1 ||
       row._lpr.indexOf(searchValue) !== -1;
 
     const matchTechnology = technologyValue === '' || row._tecnologia === technologyValue;
     const matchType = typeValue === '' || row._lpr === typeValue;
-    const matchServer = serverValue === '' || row._servidor === serverValue;
     const matchSubcentro = selectedSubcentros.length === 0 || selectedSubcentros.indexOf(row._subcentro) !== -1;
 
-    return matchSearch && matchTechnology && matchType && matchServer && matchSubcentro;
+    return matchSearch && matchTechnology && matchType && matchSubcentro;
   });
 
   renderLprListadoResults(filtered);
@@ -1064,7 +1064,7 @@ function renderLprListadoResults(rows) {
 function renderTable(rows) {
   const tbody = document.getElementById('tableBody');
   tbody.innerHTML = rows.map(function(row) {
-    return '<tr><td>' + escapeHtml(row.municipio) + '</td><td>' + escapeHtml(row.afiliacion) + '</td><td>' + escapeHtml(row.ip) + '</td><td>' + escapeHtml(row.dispositivo) + '</td></tr>';
+    return '<tr><td>' + escapeHtml(row.municipio) + '</td><td>' + escapeHtml(row.afiliacion) + '</td><td>' + escapeHtml(row.ip) + '</td><td>' + escapeHtml(row.dispositivo) + '</td><td>' + escapeHtml(row.servidor) + '</td></tr>';
   }).join('');
 }
 
@@ -1079,7 +1079,6 @@ function renderLprTable(rows) {
       '<td>' + escapeHtml(row.afiliacionSgt) + '</td>' +
       '<td>' + escapeHtml(row.ip) + '</td>' +
       '<td>' + escapeHtml(row.nombre) + '</td>' +
-      '<td>' + escapeHtml(row.servidor) + '</td>' +
       '<td>' + escapeHtml(row.serverId) + '</td>' +
       '<td>' + escapeHtml(row.deviceId) + '</td>' +
       '</tr>';
@@ -1243,7 +1242,8 @@ function cleanListadoRows(rows) {
       Municipio: row.municipio,
       Afiliacion: row.afiliacion,
       IP: row.ip,
-      Dispositivo: row.dispositivo
+      Dispositivo: row.dispositivo,
+      Servidor: row.servidor
     };
   });
 }
@@ -1274,7 +1274,6 @@ function cleanLprRows(rows) {
       Afiliacion_SGT: row.afiliacionSgt,
       IP: row.ip,
       Nombre: row.nombre,
-      Servidor: row.servidor,
       Server_ID: row.serverId,
       Device_ID: row.deviceId
     };
@@ -1352,13 +1351,13 @@ const debouncedLprSubcentroFilter = debounce(applyLprSubcentroFilter, 250);
 
 document.getElementById('searchInput').addEventListener('input', debouncedListadoFilter);
 document.getElementById('deviceFilter').addEventListener('change', applyListadoFilters);
+document.getElementById('serverFilter').addEventListener('change', applyListadoFilters);
 document.getElementById('municipioSelect').addEventListener('change', applyMunicipioFilter);
 document.getElementById('municipioSearch').addEventListener('input', debouncedMunicipioFilter);
 
 document.getElementById('lprSearchInput').addEventListener('input', debouncedLprListadoFilter);
 document.getElementById('lprTechnologyListFilter').addEventListener('change', applyLprListadoFilters);
 document.getElementById('lprTypeFilter').addEventListener('change', applyLprListadoFilters);
-document.getElementById('lprServerFilter').addEventListener('change', applyLprListadoFilters);
 document.getElementById('lprTechnologySelect').addEventListener('change', applyLprSubcentroFilter);
 document.getElementById('lprSubcentroSelect').addEventListener('change', applyLprSubcentroFilter);
 document.getElementById('lprSubcentroSearch').addEventListener('input', debouncedLprSubcentroFilter);

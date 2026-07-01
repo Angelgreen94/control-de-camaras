@@ -18,6 +18,7 @@ Columnas principales:
 - `IP`
 - `Afiliacion`
 - `Dispositivo`
+- `Servidor`
 - `Coordenadas`
 
 ### `date_lpr`
@@ -26,7 +27,6 @@ Columnas principales:
 
 - `Direccion IP`
 - `Afiliacion Cliente`
-- `Servidor`
 - `Server ID`
 - `Device ID`
 - `Nombre`
